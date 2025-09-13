@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset-001-create-users.yaml
+  - include:
+      file: db/changelog/changeset-002-create-cards.yaml
+  - include:
+      file: db/changelog/changeset-003-create-transactions.yaml
+  - include:
+      file: db/changelog/changeset-004-create-refresh-tokens.yaml
