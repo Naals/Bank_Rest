@@ -1,7 +1,8 @@
 package com.aslan.project.bank_rest.service;
 
 
-import com.aslan.project.bank_rest.dto.*;
+import com.aslan.project.bank_rest.dto.request.*;
+import com.aslan.project.bank_rest.dto.response.*;
 import com.aslan.project.bank_rest.entity.*;
 import com.aslan.project.bank_rest.repository.*;
 import com.aslan.project.bank_rest.security.JwtUtil;

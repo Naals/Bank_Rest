@@ -1,6 +1,9 @@
 package com.aslan.project.bank_rest.service;
 
 import com.aslan.project.bank_rest.dto.*;
+import com.aslan.project.bank_rest.dto.request.CardCreateRequest;
+import com.aslan.project.bank_rest.dto.request.TopUpRequest;
+import com.aslan.project.bank_rest.dto.response.BalanceResponse;
 import com.aslan.project.bank_rest.entity.*;
 import com.aslan.project.bank_rest.repository.*;
 import com.aslan.project.bank_rest.util.EncryptionUtil;
@@ -9,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -23,18 +25,18 @@ public class CardService {
         User user = userRepo.findById(req.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
         Card c = new Card();
         c.setCardNumber(EncryptionUtil.mask(req.getCardNumber()));
-        c.setOwnerName(req.getOwnerName());
+        c.setOwnerName(user.getUsername());
         c.setOwnerId(user.getId());
         c.setExpiryDate(req.getExpiry());
         c.setStatus(CardStatus.ACTIVE);
 
         c = cardRepo.save(c);
-        return toDto(c);
+        return CardDto.fromEntity(c);
     }
 
     public Page<CardDto> listForUser(Long id, int page, int size) {
-        var p = cardRepo.findByOwnerId(id, PageRequest.of(page, size));
-        return p.map(this::toDto);
+        return cardRepo.findByOwnerId(id, PageRequest.of(page, size))
+                .map(CardDto::fromEntity);
     }
 
     public Optional<Card> findById(Long id) { return cardRepo.findById(id); }
@@ -46,14 +48,29 @@ public class CardService {
         cardRepo.save(c);
     }
 
-    public CardDto toDto(Card c) {
-        CardDto d = new CardDto();
-        d.setId(c.getId());
-        d.setMaskedNumber(c.getCardNumber());
-        d.setOwnerName(c.getOwnerName());
-        d.setExpiry(c.getExpiryDate());
-        d.setStatus(c.getStatus().name());
-        d.setBalance(BigDecimal.valueOf(c.getBalance(), 2));
-        return d;
+    public BalanceResponse getBalanceForUserCard(Long userId, Long cardId) {
+        var card = cardRepo.findByIdAndOwnerId(cardId, userId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+        return new BalanceResponse(card.getId(), card.getBalance());
     }
+
+    public Page<CardDto> searchUserCards(Long userId, String query, int page, int size) {
+        return cardRepo.findByOwnerIdAndCardNumberContainingIgnoreCase(userId, query,
+                PageRequest.of(page, size)).map(CardDto::fromEntity);
+    }
+
+    @Transactional
+    public void topUp(Long userId, TopUpRequest req) {
+        var card = cardRepo.findByCardNumberAndOwnerId(
+                EncryptionUtil.mask(req.getCardNumber()),
+                userId
+        ).orElseThrow(() -> new RuntimeException("Card not found"));
+
+        long amountInCents = req.getAmount().longValueExact();
+
+        card.setBalance(card.getBalance() + amountInCents);
+        cardRepo.save(card);
+    }
+
+
 }

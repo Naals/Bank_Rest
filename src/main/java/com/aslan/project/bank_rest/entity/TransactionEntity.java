@@ -20,8 +20,6 @@ public class TransactionEntity {
     @ManyToOne
     private Card toCard;
 
-    private Long amountCents;
-    private String currency;
-    private String status;
+    private Long amount;
     private Instant createdAt;
 }

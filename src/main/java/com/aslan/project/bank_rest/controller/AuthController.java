@@ -1,7 +1,11 @@
 package com.aslan.project.bank_rest.controller;
 
 
-import com.aslan.project.bank_rest.dto.*;
+import com.aslan.project.bank_rest.dto.request.LoginRequest;
+import com.aslan.project.bank_rest.dto.request.RefreshRequest;
+import com.aslan.project.bank_rest.dto.request.RegisterRequest;
+import com.aslan.project.bank_rest.dto.response.ApiResponse;
+import com.aslan.project.bank_rest.dto.response.AuthResponse;
 import com.aslan.project.bank_rest.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

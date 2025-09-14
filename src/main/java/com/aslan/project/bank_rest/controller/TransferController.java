@@ -1,6 +1,7 @@
 package com.aslan.project.bank_rest.controller;
 
-import com.aslan.project.bank_rest.dto.TransferRequest;
+import com.aslan.project.bank_rest.dto.request.TransferRequest;
+import com.aslan.project.bank_rest.dto.response.ApiResponse;
 import com.aslan.project.bank_rest.repository.UserRepository;
 import com.aslan.project.bank_rest.service.TransferService;
 import jakarta.validation.Valid;
@@ -22,8 +23,8 @@ public class TransferController {
     @PostMapping
     public ResponseEntity<?> transfer(@AuthenticationPrincipal UserDetails ud, @Valid @RequestBody TransferRequest req) {
         var user = userRepo.findByUsername(ud.getUsername()).orElseThrow();
-        transferService.transfer(req.getFromCardId(), req.getToCardId(), req.getAmount(), user.getId());
-        return ResponseEntity.ok(new com.aslan.project.bank_rest.dto.ApiResponse("Transfer completed"));
+        transferService.transfer(req.getFromCardNumber(), req.getToCardNumber(), req.getAmount(), user.getId());
+        return ResponseEntity.ok(new ApiResponse("Transfer completed"));
     }
 }
 

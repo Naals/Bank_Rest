@@ -6,6 +6,7 @@ import com.aslan.project.bank_rest.security.jwt.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,12 +29,13 @@ public class SecurityConfig {
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtUtil, userDetailsService);
 
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
                                 "/api/cards/all",
+                                "/api/cards/create",
                                 "/api/cards/*/block",
                                 "/api/cards/*/activate",
                                 "/api/cards/*/delete",
@@ -43,7 +45,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/cards",
                                 "/api/cards/transfer",
-                                "/api/cards/search"
+                                "/api/cards/search",
+                                "/api/cards/topup"
                         ).hasRole("USER")
 
                         .requestMatchers("/auth/**").permitAll()

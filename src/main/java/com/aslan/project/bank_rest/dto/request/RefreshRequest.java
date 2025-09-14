@@ -1,4 +1,4 @@
-package com.aslan.project.bank_rest.dto;
+package com.aslan.project.bank_rest.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
