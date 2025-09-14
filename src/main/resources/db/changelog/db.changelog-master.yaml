@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changeset-003-create-transactions.yaml
   - include:
       file: db/changelog/changeset-004-create-refresh-tokens.yaml
+  - include:
+      file: db/changelog/changeset-005-block-requests.yaml

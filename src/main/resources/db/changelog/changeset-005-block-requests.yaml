@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: aslan
+      changes:
+        - createTable:
+            tableName: block_requests
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: block_requests
+            baseColumnNames: card_id
+            constraintName: fk_block_requests_cards
+            referencedTableName: cards
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: block_requests
+            baseColumnNames: user_id
+            constraintName: fk_block_requests_users
+            referencedTableName: users
+            referencedColumnNames: id

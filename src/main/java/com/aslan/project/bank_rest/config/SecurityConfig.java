@@ -36,9 +36,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/cards/all",
                                 "/api/cards/create",
-                                "/api/cards/*/block",
-                                "/api/cards/*/activate",
-                                "/api/cards/*/delete",
+                                "/api/cards/block",
+                                "/api/cards/activate",
+                                "/api/cards/delete",
                                 "/api/users/**"
                         ).hasRole("ADMIN")
 

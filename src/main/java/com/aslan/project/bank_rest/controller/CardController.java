@@ -2,10 +2,12 @@ package com.aslan.project.bank_rest.controller;
 
 import com.aslan.project.bank_rest.dto.*;
 import com.aslan.project.bank_rest.dto.request.CardCreateRequest;
+import com.aslan.project.bank_rest.dto.request.CardGetRequest;
 import com.aslan.project.bank_rest.dto.request.TopUpRequest;
 import com.aslan.project.bank_rest.dto.response.ApiResponse;
 import com.aslan.project.bank_rest.dto.response.BalanceResponse;
 import com.aslan.project.bank_rest.repository.UserRepository;
+import com.aslan.project.bank_rest.service.BlockRequestService;
 import com.aslan.project.bank_rest.service.CardService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -19,10 +21,12 @@ import org.springframework.web.bind.annotation.*;
 public class CardController {
     private final CardService cardService;
     private final UserRepository userRepo;
+    private final BlockRequestService blockRequestService;
 
-    public CardController(CardService cs, UserRepository ur) {
+    public CardController(CardService cs, UserRepository ur, BlockRequestService bs) {
         this.cardService = cs;
         this.userRepo = ur;
+        this.blockRequestService = bs;
     }
 
     @PostMapping("/create")
@@ -39,17 +43,11 @@ public class CardController {
         return ResponseEntity.ok(cardService.listForUser(user.getId(), page, size));
     }
 
-    @GetMapping("/{id}/balance")
-    public ResponseEntity<BalanceResponse> balance(@PathVariable Long id,
+    @GetMapping("/balance")
+    public ResponseEntity<BalanceResponse> balance(@RequestBody CardGetRequest req,
                                                    @AuthenticationPrincipal UserDetails ud) {
         var user = userRepo.findByUsername(ud.getUsername()).orElseThrow();
-        return ResponseEntity.ok(cardService.getBalanceForUserCard(user.getId(), id));
-    }
-
-    @PutMapping("/{id}/block")
-    public ResponseEntity<ApiResponse> block(@PathVariable Long id) {
-        cardService.blockCard(id);
-        return ResponseEntity.ok(new ApiResponse("Blocked"));
+        return ResponseEntity.ok(cardService.getBalanceForUserCard(user.getId(), req));
     }
 
     @GetMapping("/search")
@@ -68,6 +66,27 @@ public class CardController {
         cardService.topUp(user.getId(), req);
         return ResponseEntity.ok(new ApiResponse("Balance topped up successfully"));
     }
+
+    @PostMapping("/request-block")
+    public ResponseEntity<ApiResponse> requestBlock(@AuthenticationPrincipal UserDetails ud,
+                                                    @RequestBody CardGetRequest req) {
+        var user = userRepo.findByUsername(ud.getUsername()).orElseThrow();
+        blockRequestService.requestBlock(user.getId(), req);
+        return ResponseEntity.ok(new ApiResponse("Block request submitted"));
+    }
+
+    @PutMapping("/block-requests/{id}/approve")
+    public ResponseEntity<ApiResponse> approve(@PathVariable Long id) {
+        blockRequestService.approveRequest(id);
+        return ResponseEntity.ok(new ApiResponse("Card blocked successfully"));
+    }
+
+    @PutMapping("/block-requests/{id}/reject")
+    public ResponseEntity<ApiResponse> reject(@PathVariable Long id) {
+        blockRequestService.rejectRequest(id);
+        return ResponseEntity.ok(new ApiResponse("Block request rejected"));
+    }
+
 
 
 }

@@ -2,8 +2,10 @@ package com.aslan.project.bank_rest.service;
 
 import com.aslan.project.bank_rest.dto.*;
 import com.aslan.project.bank_rest.dto.request.CardCreateRequest;
+import com.aslan.project.bank_rest.dto.request.CardGetRequest;
 import com.aslan.project.bank_rest.dto.request.TopUpRequest;
 import com.aslan.project.bank_rest.dto.response.BalanceResponse;
+import com.aslan.project.bank_rest.dto.response.BlockResponse;
 import com.aslan.project.bank_rest.entity.*;
 import com.aslan.project.bank_rest.repository.*;
 import com.aslan.project.bank_rest.util.EncryptionUtil;
@@ -11,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 public class CardService {
@@ -39,19 +39,22 @@ public class CardService {
                 .map(CardDto::fromEntity);
     }
 
-    public Optional<Card> findById(Long id) { return cardRepo.findById(id); }
-
-    @Transactional
-    public void blockCard(Long id) {
-        Card c = cardRepo.findById(id).orElseThrow();
-        c.setStatus(CardStatus.BLOCKED);
-        cardRepo.save(c);
+    public Card cardFind (String cardNumber, Long userId) {
+        return cardRepo.findByCardNumberAndOwnerId(EncryptionUtil.mask(cardNumber), userId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
     }
 
-    public BalanceResponse getBalanceForUserCard(Long userId, Long cardId) {
-        var card = cardRepo.findByIdAndOwnerId(cardId, userId)
-                .orElseThrow(() -> new RuntimeException("Card not found"));
-        return new BalanceResponse(card.getId(), card.getBalance());
+    @Transactional
+    public BlockResponse blockCard(Long userId, CardGetRequest req) {
+        var card = cardFind(req.getCardNumber(), userId);
+        card.setStatus(CardStatus.BLOCKED);
+        cardRepo.save(card);
+        return new BlockResponse(card.getCardNumber(), CardStatus.BLOCKED);
+    }
+
+    public BalanceResponse getBalanceForUserCard(Long userId, CardGetRequest req) {
+        var card = cardFind(req.getCardNumber(), userId);
+        return new BalanceResponse(card.getCardNumber(), card.getBalance());
     }
 
     public Page<CardDto> searchUserCards(Long userId, String query, int page, int size) {
