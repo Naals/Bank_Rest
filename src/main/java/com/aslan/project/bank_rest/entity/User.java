@@ -18,8 +18,8 @@ public class User {
     @Column(name = "password_hash")
     private String passwordHash;
 
-    // simple comma-separated roles: "ROLE_USER,ROLE_ADMIN"
-    private String roles;
+    @Enumerated(EnumType.STRING)
+    private UserRole roles;
 
     private boolean enabled = true;
 }

@@ -39,7 +39,7 @@ public class SecurityConfig {
                                 "/api/cards/block",
                                 "/api/cards/activate",
                                 "/api/cards/delete",
-                                "/api/users/**"
+                                "/api/admin/**"
                         ).hasRole("ADMIN")
 
                         .requestMatchers(

@@ -24,7 +24,7 @@ public class CardDto {
         d.setOwnerName(c.getOwnerName());
         d.setExpiry(c.getExpiryDate());
         d.setStatus(c.getStatus().name());
-        d.setBalance(BigDecimal.valueOf(c.getBalance(), 2));
+        d.setBalance(BigDecimal.valueOf(c.getBalance(), 0));
         return d;
     }
 }

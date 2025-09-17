@@ -5,7 +5,6 @@ import com.aslan.project.bank_rest.dto.request.CardCreateRequest;
 import com.aslan.project.bank_rest.dto.request.CardGetRequest;
 import com.aslan.project.bank_rest.dto.request.TopUpRequest;
 import com.aslan.project.bank_rest.dto.response.BalanceResponse;
-import com.aslan.project.bank_rest.dto.response.BlockResponse;
 import com.aslan.project.bank_rest.entity.*;
 import com.aslan.project.bank_rest.repository.*;
 import com.aslan.project.bank_rest.util.EncryptionUtil;
@@ -44,14 +43,6 @@ public class CardService {
                 .orElseThrow(() -> new RuntimeException("Card not found"));
     }
 
-    @Transactional
-    public BlockResponse blockCard(Long userId, CardGetRequest req) {
-        var card = cardFind(req.getCardNumber(), userId);
-        card.setStatus(CardStatus.BLOCKED);
-        cardRepo.save(card);
-        return new BlockResponse(card.getCardNumber(), CardStatus.BLOCKED);
-    }
-
     public BalanceResponse getBalanceForUserCard(Long userId, CardGetRequest req) {
         var card = cardFind(req.getCardNumber(), userId);
         return new BalanceResponse(card.getCardNumber(), card.getBalance());
@@ -64,15 +55,23 @@ public class CardService {
 
     @Transactional
     public void topUp(Long userId, TopUpRequest req) {
-        var card = cardRepo.findByCardNumberAndOwnerId(
-                EncryptionUtil.mask(req.getCardNumber()),
-                userId
-        ).orElseThrow(() -> new RuntimeException("Card not found"));
+        var card = cardFind(req.getCardNumber(), userId);
 
         long amountInCents = req.getAmount().longValueExact();
 
         card.setBalance(card.getBalance() + amountInCents);
         cardRepo.save(card);
+    }
+
+    @Transactional
+    public void deleteCard(CardGetRequest req) {
+        Card card = cardRepo.findByCardNumber(EncryptionUtil.mask(req.getCardNumber())).orElseThrow(() -> new RuntimeException("Card not found"));
+        cardRepo.deleteById(card.getId());
+    }
+
+    public Page<CardDto> listAll(int page, int size) {
+        return cardRepo.findAll(PageRequest.of(page, size))
+                .map(CardDto::fromEntity);
     }
 
 

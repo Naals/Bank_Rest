@@ -87,7 +87,16 @@ public class CardController {
         return ResponseEntity.ok(new ApiResponse("Block request rejected"));
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<ApiResponse> deleteCard(@RequestBody CardGetRequest req) {
+        cardService.deleteCard(req);
+        return ResponseEntity.ok(new ApiResponse("Card deleted successfully"));
+    }
 
-
+    @GetMapping("/all")
+    public ResponseEntity<Page<CardDto>> allCards(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(cardService.listAll(page, size));
+    }
 }
 

@@ -1,5 +1,6 @@
 package com.aslan.project.bank_rest.security;
 
+import com.aslan.project.bank_rest.entity.UserRole;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -20,12 +21,12 @@ public class JwtUtil {
     @Value("${jwt.access-token-validity-minutes}")
     private Long accessTokenValidityMinutes;
 
-    public String generateAccessToken(String username, String roles) {
+    public String generateAccessToken(String username, UserRole role) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         Instant now = Instant.now();
         return Jwts.builder()
                 .setSubject(username)
-                .claim("roles", roles)
+                .claim("role", role)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plus(accessTokenValidityMinutes, ChronoUnit.MINUTES)))
                 .signWith(key, SignatureAlgorithm.HS256)

@@ -29,7 +29,7 @@ public class AuthService {
         User u = new User();
         u.setUsername(req.getUsername());
         u.setPasswordHash(passwordEncoder.encode(req.getPassword()));
-        u.setRoles(req.getRole().equalsIgnoreCase("admin") ? "ROLE_ADMIN" : "ROLE_USER");
+        u.setRoles(req.getRole().equalsIgnoreCase("admin") ? UserRole.ROLE_ADMIN : UserRole.ROLE_USER);
         userRepo.save(u);
     }
 

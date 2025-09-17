@@ -18,7 +18,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User u = userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        var authorities = java.util.Arrays.stream(u.getRoles().split(","))
+        var authorities = java.util.Arrays.stream(u.getRoles().name().split(","))
                 .map(String::trim)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());

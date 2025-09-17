@@ -10,8 +10,6 @@ import java.util.Optional;
 public interface CardRepository extends JpaRepository<Card, Long> {
     Page<Card> findByOwnerId(Long ownerId, Pageable pageable);
 
-    Optional<Card> findByIdAndOwnerId(Long id, Long ownerId);
-
     Page<Card> findByOwnerIdAndCardNumberContainingIgnoreCase(Long ownerId, String query, Pageable pageable);
 
     Optional<Card> findByCardNumberAndOwnerId(String cardNumber, Long ownerId);
