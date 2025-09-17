@@ -16,15 +16,17 @@ import java.time.Instant;
 public class BlockRequestService {
     private final BlockRequestRepository repo;
     private final CardRepository cardRepo;
+    private final EncryptionUtil encryptionUtil;
 
-    public BlockRequestService(BlockRequestRepository r, CardRepository c) {
+    public BlockRequestService(BlockRequestRepository r, CardRepository c, EncryptionUtil encryptionUtil) {
         this.repo = r;
         this.cardRepo = c;
+        this.encryptionUtil = encryptionUtil;
     }
 
     @Transactional
     public void requestBlock(Long userId, CardGetRequest req) {
-        var card = cardRepo.findByCardNumberAndOwnerId(EncryptionUtil.mask(req.getCardNumber()), userId)
+        var card = cardRepo.findByCardNumberAndOwnerId(encryptionUtil.encrypt(req.getCardNumber()), userId)
                 .orElseThrow(() -> new RuntimeException("Card not found"));
 
         BlockRequestEntity br = new BlockRequestEntity();

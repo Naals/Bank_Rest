@@ -13,13 +13,14 @@ import java.time.Instant;
 public class TransferService {
     private final CardRepository cardRepo;
     private final TransactionRepository txRepo;
-    public TransferService(CardRepository cr, TransactionRepository tr) { this.cardRepo = cr; this.txRepo = tr; }
+    private final EncryptionUtil encryptionUtil;
+    public TransferService(CardRepository cr, TransactionRepository tr, EncryptionUtil encryptionUtil) { this.cardRepo = cr; this.txRepo = tr; this.encryptionUtil = encryptionUtil; }
 
     @Transactional
-    public void transfer(String fromId, String toId, BigDecimal amount, Long userId) {
-        if (fromId.equals(toId)) throw new RuntimeException("Cannot transfer to same card");
-        Card from = cardRepo.findByCardNumber(EncryptionUtil.mask(fromId)).orElseThrow(() -> new RuntimeException("From card not found"));
-        Card to = cardRepo.findByCardNumber(EncryptionUtil.mask(toId)).orElseThrow(() -> new RuntimeException("To card not found"));
+    public void transfer(String fromCard, String toCard, BigDecimal amount, Long userId) {
+        if (fromCard.equals(toCard)) throw new RuntimeException("Cannot transfer to same card");
+        Card from = cardRepo.findByCardNumber(encryptionUtil.encrypt(fromCard)).orElseThrow(() -> new RuntimeException("From card not found"));
+        Card to = cardRepo.findByCardNumber(encryptionUtil.encrypt(toCard)).orElseThrow(() -> new RuntimeException("To card not found"));
 
         if (!from.getOwnerId().equals(userId) || !to.getOwnerId().equals(userId)) throw new RuntimeException("Cards must belong to same user");
         if (from.getStatus() != CardStatus.ACTIVE || to.getStatus() != CardStatus.ACTIVE) throw new RuntimeException("Card not active");

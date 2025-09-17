@@ -17,40 +17,57 @@ import org.springframework.transaction.annotation.Transactional;
 public class CardService {
     private final CardRepository cardRepo;
     private final UserRepository userRepo;
+    private final EncryptionUtil encryptionUtil;
 
-    public CardService(CardRepository cr, UserRepository ur) { this.cardRepo = cr; this.userRepo = ur;}
+    public CardService(CardRepository cr, UserRepository ur, EncryptionUtil encryptionUtil) {
+        this.cardRepo = cr;
+        this.userRepo = ur;
+        this.encryptionUtil = encryptionUtil;
+    }
 
     public CardDto create(CardCreateRequest req) {
-        User user = userRepo.findById(req.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepo.findById(req.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         Card c = new Card();
-        c.setCardNumber(EncryptionUtil.mask(req.getCardNumber()));
+        c.setCardNumber(encryptionUtil.encrypt(req.getCardNumber()));
         c.setOwnerName(user.getUsername());
         c.setOwnerId(user.getId());
         c.setExpiryDate(req.getExpiry());
         c.setStatus(CardStatus.ACTIVE);
 
-        c = cardRepo.save(c);
-        return CardDto.fromEntity(c);
+        cardRepo.save(c);
+
+        String masked = EncryptionUtil.mask(req.getCardNumber());
+        return CardDto.fromEntity(c, masked);
     }
 
     public Page<CardDto> listForUser(Long id, int page, int size) {
         return cardRepo.findByOwnerId(id, PageRequest.of(page, size))
-                .map(CardDto::fromEntity);
+                .map(c -> {
+                    String masked = EncryptionUtil.mask(encryptionUtil.decrypt(c.getCardNumber()));
+                    return CardDto.fromEntity(c, masked);
+                });
     }
 
-    public Card cardFind (String cardNumber, Long userId) {
-        return cardRepo.findByCardNumberAndOwnerId(EncryptionUtil.mask(cardNumber), userId)
+    public Card cardFind(String cardNumber, Long userId) {
+        return cardRepo.findByCardNumberAndOwnerId(encryptionUtil.encrypt(cardNumber), userId)
                 .orElseThrow(() -> new RuntimeException("Card not found"));
     }
 
     public BalanceResponse getBalanceForUserCard(Long userId, CardGetRequest req) {
         var card = cardFind(req.getCardNumber(), userId);
-        return new BalanceResponse(card.getCardNumber(), card.getBalance());
+        String masked = EncryptionUtil.mask(encryptionUtil.decrypt(card.getCardNumber()));
+        return new BalanceResponse(masked, card.getBalance());
     }
 
     public Page<CardDto> searchUserCards(Long userId, String query, int page, int size) {
         return cardRepo.findByOwnerIdAndCardNumberContainingIgnoreCase(userId, query,
-                PageRequest.of(page, size)).map(CardDto::fromEntity);
+                        PageRequest.of(page, size))
+                .map(c -> {
+                    String masked = EncryptionUtil.mask(encryptionUtil.decrypt(c.getCardNumber()));
+                    return CardDto.fromEntity(c, masked);
+                });
     }
 
     @Transactional
@@ -65,14 +82,17 @@ public class CardService {
 
     @Transactional
     public void deleteCard(CardGetRequest req) {
-        Card card = cardRepo.findByCardNumber(EncryptionUtil.mask(req.getCardNumber())).orElseThrow(() -> new RuntimeException("Card not found"));
+        Card card = cardRepo.findByCardNumber(encryptionUtil.encrypt(req.getCardNumber()))
+                .orElseThrow(() -> new RuntimeException("Card not found"));
         cardRepo.deleteById(card.getId());
     }
 
     public Page<CardDto> listAll(int page, int size) {
         return cardRepo.findAll(PageRequest.of(page, size))
-                .map(CardDto::fromEntity);
+                .map(c -> {
+                    String masked = EncryptionUtil.mask(encryptionUtil.decrypt(c.getCardNumber()));
+                    return CardDto.fromEntity(c, masked);
+                });
     }
-
-
 }
+

@@ -44,10 +44,20 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/cards",
-                                "/api/cards/transfer",
                                 "/api/cards/search",
-                                "/api/cards/topup"
+                                "/api/cards/topup",
+                                "api/transfers"
                         ).hasRole("USER")
+
+                        .requestMatchers(
+                                "/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "v3/**"
+                        ).permitAll()
 
                         .requestMatchers("/auth/**").permitAll()
 

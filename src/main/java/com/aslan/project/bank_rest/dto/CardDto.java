@@ -17,14 +17,14 @@ public class CardDto {
     private String status;
     private BigDecimal balance;
 
-    public static CardDto fromEntity(Card c) {
+    public static CardDto fromEntity(Card c, String maskedNumber) {
         CardDto d = new CardDto();
         d.setId(c.getId());
-        d.setMaskedNumber(c.getCardNumber());
+        d.setMaskedNumber(maskedNumber);
         d.setOwnerName(c.getOwnerName());
         d.setExpiry(c.getExpiryDate());
         d.setStatus(c.getStatus().name());
-        d.setBalance(BigDecimal.valueOf(c.getBalance(), 0));
+        d.setBalance(BigDecimal.valueOf(c.getBalance()));
         return d;
     }
 }
